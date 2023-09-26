@@ -4,6 +4,6 @@ I did not find any good graphical displays of how it works. Therefore I made my 
 
 ![visualisation with simple example](https://github.com/rliebig/push_relabel/blob/main/webp/simple_example.webp)
 
-![visualisation with an counter example for ford fulkerson](https://github.com/rliebig/push_relabel/blog/main/webp/counter_example_fulkerson.webp)
+![visualisation with an counter example for ford fulkerson](https://github.com/rliebig/push_relabel/blob/main/webp/counter_example_fulkerson.webp)
 
 Be aware, if you run this it will generate a lot of files in your current directory.
