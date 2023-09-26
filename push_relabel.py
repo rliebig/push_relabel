@@ -493,7 +493,7 @@ def main():
     pygame.font.init()
     generate_initial_images()
     preload_images()
-    SCREEN = pygame.display.set_mode((WINDOW_HEIGHT, WINDOW_WIDTH))
+    SCREEN = pygame.display.set_mode((WINDOW_WIDTH, WINDOW_HEIGHT))
     CLOCK = pygame.time.Clock()
 
     flow_network = FlowNetwork()
