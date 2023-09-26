@@ -13,7 +13,8 @@ pygame.font.init()
 GLOBAL_FONT = pygame.font.SysFont("monspace", 30)
 GLOBAL_OFFSET = 493
 WINDOW_HEIGHT = 1000
-WINDOW_WIDTH = 1000
+WINDOW_WIDTH = 1200
+RIGHT_OFFSET = 80
 
 COLOR_RED = (125, 0, 1)
 COLOR_GREEN = (5, 125, 6)
@@ -23,7 +24,7 @@ COLOR_BLACK = (0, 0, 0)
 COLOR_GREY = (90, 90, 90)
 COLOR_WHITE = (255, 255, 255)
 
-RIGHT_OFFSET = 100
+LEFT_OFFSET = 100
 
 
 def draw_circle_alpha(color, center, radius, alpha):
@@ -42,10 +43,10 @@ ALGORITHM_STEPS = [
     r"\ \ \ \ \mathrm{else}",
     r"\ \ \ \ \ \ \ \ f(uv) \leftarrow 0",
     r"h(s) = V",
-    r"\mathrm{for}\ u\ \in\ V(G)\ \mathrm{setminus}  \{s\}",
+    r"\mathrm{for}\ u\ \in\ V(G)\ \backslash\  \{s\}",
     r"\ \ \ \ h(u) = 0",
     r"\mathrm{while}\ \exists\mathrm{aktiver Knoten}\ a\ \mathrm{do}",
-    r"\ \ \ \ \mathrm{if}\ \exists \mathrm{aktive\ Abwaertskante}\ ab \in E(R_G)\ \mathrm{then}",
+    r"\ \ \ \ \mathrm{if}\ \exists \mathrm{aktive\ Abw\"artskante}\ ab \in E(R_G)\ \mathrm{then}",
     r"\ \ \ \ \ \ \ \ x \leftarrow min\{\delta_{f}(a),rest_{f}(ab)\}",
     r"\ \ \ \ \ \ \ \ \mathrm{if} ab \in E(G)\ \mathrm{then}",
     r"\ \ \ \ \ \ \ \ \ \ \ \ \ f(ab) \leftarrow f(ab) + x",
@@ -87,7 +88,7 @@ PRELOADED_IMAGES = {}
 
 
 def preload_images():
-    global RIGHT_OFFSET
+    global LEFT_OFFSET
     for line in range(len(ALGORITHM_STEPS)):
         # not too DRY...
         name = f"line{line}red.png"
@@ -100,12 +101,12 @@ def preload_images():
 
         width = img.get_width()
 
-        if width > RIGHT_OFFSET:
-            RIGHT_OFFSET = width
+        if width > LEFT_OFFSET:
+            LEFT_OFFSET = width
 
 
 def paint_algorithm(highlight_line=0):
-    global SCREEN, RIGHT_OFFSET, GLOBAL_OFFSET
+    global SCREEN, LEFT_OFFSET, GLOBAL_OFFSET
     GLOBAL_OFFSET = 0
     for line in range(len(ALGORITHM_STEPS)):
         if line == highlight_line:
@@ -233,7 +234,7 @@ class Vertex:
 
 class FlowNetwork:
     def __init__(self):
-        global RIGHT_OFFSET, GLOBAL_OFFSET
+        global LEFT_OFFSET, GLOBAL_OFFSET, RIGHT_OFFSET
         self.vertices = []
         self.edges = []
         # every vertic is assigned to a layer
@@ -247,17 +248,17 @@ class FlowNetwork:
         # add s to our collection
         half_way_down = GLOBAL_OFFSET / 2
 
-        initial_width_point = RIGHT_OFFSET + 10
+        initial_width_point = LEFT_OFFSET + 10
         s = Vertex(initial_width_point, half_way_down, is_source=True)
         self.vertices.append(s)
         # now add t to our collection
-        t = Vertex(WINDOW_WIDTH-10, half_way_down)
+        t = Vertex(WINDOW_WIDTH - RIGHT_OFFSET, half_way_down)
         t.is_sink = True
         self.vertices.append(t)
 
         # we know add two nodes
         # therefore we have four layers
-        four_split = (WINDOW_WIDTH-10 - initial_width_point) / 3
+        four_split = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 3
 
         first_layer_x = initial_width_point + four_split
         second_layer_x = initial_width_point + (2 * four_split)
@@ -489,7 +490,7 @@ def goldberg_tarjan(flow_network, state, step_to_compute):
 
 
 def main():
-    global SCREEN, CLOCK, RIGHT_OFFSET, WINDOW_HEIGHT, WINDOW_WIDTH
+    global SCREEN, CLOCK, LEFT_OFFSET, WINDOW_HEIGHT, WINDOW_WIDTH
     pygame.init()
     pygame.font.init()
     generate_initial_images()
