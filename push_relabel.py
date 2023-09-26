@@ -24,7 +24,6 @@ COLOR_GREY = (90, 90, 90)
 COLOR_WHITE = (255, 255, 255)
 
 
-
 def draw_circle_alpha(color, center, radius, alpha):
     global SCREEN
     target_rect = pygame.Rect(center, (0, 0)).inflate((radius * 2, radius * 2))
@@ -245,41 +244,43 @@ class FlowNetwork:
         self._layers = []
 
         # add s to our collection
-        half_way_down = GLOBAL_OFFSET / 2
 
         initial_width_point = LEFT_OFFSET + 10
-        s = Vertex(initial_width_point, half_way_down, is_source=True)
+        middle = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 2
+        middle_position = initial_width_point + middle
+        half_way_down = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 2
+        s = Vertex(initial_width_point, half_way_down + 60, is_source=True)
         self.vertices.append(s)
         # now add t to our collection
-        t = Vertex(WINDOW_WIDTH - RIGHT_OFFSET, half_way_down)
+        t = Vertex(WINDOW_WIDTH - RIGHT_OFFSET, half_way_down + 60)
         t.is_sink = True
         self.vertices.append(t)
 
         total_down = GLOBAL_OFFSET
 
-        four_split = (GLOBAL_OFFSET - 2 * TOP_AND_BOTTOM_OFFSET) / 4
+        x_four_split = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 3
+        y_four_split = (GLOBAL_OFFSET - 2 * TOP_AND_BOTTOM_OFFSET) / 4
 
-        middle = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 2
-        middle_position = initial_width_point + middle
 
-        v0 = Vertex(middle_position, four_split * 1)
-        v1 = Vertex(middle_position, four_split * 2)
-        v2 = Vertex(middle_position, four_split * 3)
-        v3 = Vertex(middle_position, four_split * 4)
+        v0 = Vertex(middle_position - 100, x_four_split * 1)
+        v1 = Vertex(middle_position + 100, x_four_split * 1)
+        v2 = Vertex(middle_position - 100, x_four_split * 3)
+        v3 = Vertex(middle_position + 100, x_four_split * 3)
 
-        s_to_v0 = Edge(1, s, v0)
-        s_to_v1 = Edge(1, s, v1)
-        s_to_v2 = Edge(1, s, v2)
-        s_to_v3 = Edge(1, s, v3)
+        s_to_v0 = Edge(9, s, v0)
+        s_to_v2 = Edge(4, s, v2)
 
-        v0_to_t = Edge(1, v0, t)
-        v1_to_t = Edge(1, v1, t)
-        v2_to_t = Edge(1, v2, t)
-        v3_to_t = Edge(1, v3, t)
+        v0_to_v1 = Edge(3, v0, v1)
+        v0_to_v2 = Edge(2, v0, v2)
+        v2_to_v3 = Edge(4, v2, v3)
+        v3_to_v0 = Edge(4, v3, v0)
+
+        v1_to_t = Edge(2, v1, t)
+        v3_to_t = Edge(3, v3, t)
+
 
         # we know add two nodes
         # therefore we have four layers
-        # four_split = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 3
 
         # first_layer_x = initial_width_point + four_split
         # second_layer_x = initial_width_point + (2 * four_split)
@@ -293,13 +294,13 @@ class FlowNetwork:
 
         [self.edges.append(x) for x in [
             s_to_v0,
-            s_to_v1,
             s_to_v2,
-            s_to_v3,
-            v0_to_t,
             v1_to_t,
-            v2_to_t,
             v3_to_t,
+            v0_to_v1,
+            v0_to_v2,
+            v2_to_v3,
+            v3_to_v0,
         ]]
         [self.vertices.append(x) for x in [v0, v1, v2, v3]]
 
