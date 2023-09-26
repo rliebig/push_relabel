@@ -1,11 +1,8 @@
 import pygame
 import random
-from copy import deepcopy
-import os
-from pygame.locals import *
+from pygame.locals import QUIT, KEYDOWN, K_r, K_s
 import sys
 import matplotlib.pyplot as plt
-import matplotlib as mpl
 
 
 pygame.font.init()
@@ -46,7 +43,7 @@ ALGORITHM_STEPS = [
     r"\mathrm{for}\ u\ \in\ V(G)\ \backslash\  \{s\}",
     r"\ \ \ \ h(u) = 0",
     r"\mathrm{while}\ \exists\mathrm{aktiver Knoten}\ a\ \mathrm{do}",
-    r"\ \ \ \ \mathrm{if}\ \exists \mathrm{aktive\ Abw\"artskante}\ ab \in E(R_G)\ \mathrm{then}",
+    r"\ \ \ \ \mathrm{if}\ \exists \mathrm{aktive\ Abw\"artskante}\ ab \in E(R_G)\ \mathrm{then}",  # noqa: E501
     r"\ \ \ \ \ \ \ \ x \leftarrow min\{\delta_{f}(a),rest_{f}(ab)\}",
     r"\ \ \ \ \ \ \ \ \mathrm{if} ab \in E(G)\ \mathrm{then}",
     r"\ \ \ \ \ \ \ \ \ \ \ \ \ f(ab) \leftarrow f(ab) + x",
@@ -54,7 +51,7 @@ ALGORITHM_STEPS = [
     r"\ \ \ \ \ \ \ \ \ \ \ \ \ f(ba) \leftarrow f(ba) - x",
     r"\ \ \ \ \mathrm{else}",
     r"\ \ \ \ \ \ \ \ h(a) \leftarrow h(a) + 1",
-    r"\mathrm{return}"
+    r"\mathrm{return}",
 ]
 
 
@@ -204,7 +201,7 @@ class Vertex:
     def set_height(self, state):
         self.height = state
         self.height_modified = True
-        self.y = self.start_y - (20*self.height)
+        self.y = self.start_y - (20 * self.height)
 
     def draw(self):
         global SCREEN
@@ -223,7 +220,7 @@ class Vertex:
                 255.0,
             )
             text = GLOBAL_FONT.render(f"{self.overflow}", True, COLOR_BLACK)
-            SCREEN.blit(text, (self.x-6, working_y - 8))
+            SCREEN.blit(text, (self.x - 6, working_y - 8))
         if self.height_modified:
             text = GLOBAL_FONT.render(f"h = {self.height}", True, COLOR_BLACK)
             SCREEN.blit(text, (self.x, working_y + 12))
@@ -275,7 +272,6 @@ class FlowNetwork:
 
     def get_active_nodes(self):
         """Get active nodes according to Goldberg-Tarjan Algorithm"""
-
 
     def prune_active_state(self):
         for vertex in self.vertices:
@@ -392,7 +388,9 @@ def goldberg_tarjan(flow_network, state, step_to_compute):
             # we are not trying to programm this at utmost efficiency
             # we are trying to code this as similar as possible to the original
             # implementation and faithfully represent it on screen...
-            state["height_loop"] = [x for x in flow_network.get_vertices() if not x.is_source]
+            state["height_loop"] = [
+                x for x in flow_network.get_vertices() if not x.is_source
+            ]
 
             state["init_i"] = 0
             state["height_loop_vertex"] = state["height_loop"][state["init_i"]]
@@ -405,7 +403,9 @@ def goldberg_tarjan(flow_network, state, step_to_compute):
         # we can not use our "simple" loop statement here
         # because we actively have to check for an active node
         flow_network.update_overflow()
-        active_nodes = [node for node in flow_network.get_vertices() if node.overflow > 0]
+        active_nodes = [
+            node for node in flow_network.get_vertices() if node.overflow > 0
+        ]
         if len(active_nodes) == 0:
             return state, 18
 
@@ -416,9 +416,8 @@ def goldberg_tarjan(flow_network, state, step_to_compute):
     elif step_to_compute == 9:
         # eine Kante ist eine aktive Abwaertskante, wenn a ein
         # aktiver Knoten ist (was hier durch Schritt 8 zwangslauefig gegeben ist)
-        # rest(ab) > 0 (i.e. kapazitaet steht zur Verfuegung) und 
+        # rest(ab) > 0 (i.e. kapazitaet steht zur Verfuegung) und
         # h(a) > h(b)
-        node = state["selected_node"]
         flow_network.update_overflow()
         print([str(x) for x in flow_network.get_rest_network()])
         for edge in flow_network.get_rest_network():
@@ -445,7 +444,6 @@ def goldberg_tarjan(flow_network, state, step_to_compute):
         print(f"rest_f {rest_f}")
         print(f"delta_f_a {delta_f_a}")
         if rest_f >= delta_f_a:
-
             state["min"] = delta_f_a
         else:
             state["min"] = rest_f
@@ -518,7 +516,6 @@ def main():
                     i += 1
                     accumulated_potential.append(flow_network.get_potential())
                     # add a boundary protection at some point...
-
 
             SCREEN.fill(COLOR_WHITE)
             flow_network.draw()
