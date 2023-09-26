@@ -12,6 +12,8 @@ GLOBAL_OFFSET = 493
 WINDOW_HEIGHT = 1000
 WINDOW_WIDTH = 1200
 RIGHT_OFFSET = 80
+LEFT_OFFSET = 100
+TOP_AND_BOTTOM_OFFSET = 100
 
 COLOR_RED = (125, 0, 1)
 COLOR_GREEN = (5, 125, 6)
@@ -21,7 +23,6 @@ COLOR_BLACK = (0, 0, 0)
 COLOR_GREY = (90, 90, 90)
 COLOR_WHITE = (255, 255, 255)
 
-LEFT_OFFSET = 100
 
 
 def draw_circle_alpha(color, center, radius, alpha):
@@ -201,7 +202,8 @@ class Vertex:
     def set_height(self, state):
         self.height = state
         self.height_modified = True
-        self.y = self.start_y - (20 * self.height)
+        # only useful for straight part
+        # self.y = self.start_y - (20 * self.height)
 
     def draw(self):
         global SCREEN
@@ -253,22 +255,53 @@ class FlowNetwork:
         t.is_sink = True
         self.vertices.append(t)
 
+        total_down = GLOBAL_OFFSET
+
+        four_split = (GLOBAL_OFFSET - 2 * TOP_AND_BOTTOM_OFFSET) / 4
+
+        middle = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 2
+        middle_position = initial_width_point + middle
+
+        v0 = Vertex(middle_position, four_split * 1)
+        v1 = Vertex(middle_position, four_split * 2)
+        v2 = Vertex(middle_position, four_split * 3)
+        v3 = Vertex(middle_position, four_split * 4)
+
+        s_to_v0 = Edge(1, s, v0)
+        s_to_v1 = Edge(1, s, v1)
+        s_to_v2 = Edge(1, s, v2)
+        s_to_v3 = Edge(1, s, v3)
+
+        v0_to_t = Edge(1, v0, t)
+        v1_to_t = Edge(1, v1, t)
+        v2_to_t = Edge(1, v2, t)
+        v3_to_t = Edge(1, v3, t)
+
         # we know add two nodes
         # therefore we have four layers
-        four_split = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 3
+        # four_split = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 3
 
-        first_layer_x = initial_width_point + four_split
-        second_layer_x = initial_width_point + (2 * four_split)
+        # first_layer_x = initial_width_point + four_split
+        # second_layer_x = initial_width_point + (2 * four_split)
 
-        v0 = Vertex(first_layer_x, half_way_down)
-        v1 = Vertex(second_layer_x, half_way_down)
+        # v0 = Vertex(first_layer_x, half_way_down)
+        # v1 = Vertex(second_layer_x, half_way_down)
 
-        s_to_v0 = Edge(3, s, v0)
-        v0_to_v1 = Edge(2, v0, v1)
-        v1_to_t = Edge(1, v1, t)
+        # s_to_v0 = Edge(3, s, v0)
+        # v0_to_v1 = Edge(2, v0, v1)
+        # v1_to_t = Edge(1, v1, t)
 
-        [self.edges.append(x) for x in [s_to_v0, v0_to_v1, v1_to_t]]
-        [self.vertices.append(x) for x in [v0, v1]]
+        [self.edges.append(x) for x in [
+            s_to_v0,
+            s_to_v1,
+            s_to_v2,
+            s_to_v3,
+            v0_to_t,
+            v1_to_t,
+            v2_to_t,
+            v3_to_t,
+        ]]
+        [self.vertices.append(x) for x in [v0, v1, v2, v3]]
 
     def get_active_nodes(self):
         """Get active nodes according to Goldberg-Tarjan Algorithm"""
@@ -423,17 +456,10 @@ def goldberg_tarjan(flow_network, state, step_to_compute):
         for edge in flow_network.get_rest_network():
             a = edge.a
             b = edge.b
-            print("---a---")
-            print(a.height)
-            print(a.overflow)
-            print("---b---")
-            print(b.height)
-            print(b.overflow)
-            print("---flow---")
-            print(edge.flow)
-            if b.height > a.height and edge.flow > 0 and b.overflow > 0:
-                state["active_downward_edge"] = edge
-                return state, 10
+            if a == state["selected_node"] or b == state["selected_node"]:
+                if b.height > a.height and edge.flow > 0 and b.overflow > 0:
+                    state["active_downward_edge"] = edge
+                    return state, 10
 
         # else branch in the script...
         return state, 15
