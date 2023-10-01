@@ -15,6 +15,8 @@ RIGHT_OFFSET = 80
 LEFT_OFFSET = 100
 TOP_AND_BOTTOM_OFFSET = 100
 
+NODE_RADIUS = 20
+
 COLOR_RED = (125, 0, 1)
 COLOR_GREEN = (5, 125, 6)
 COLOR_BLUE = (4, 57, 115)
@@ -116,6 +118,64 @@ def paint_algorithm(highlight_line=0):
         SCREEN.blit(img, (0, GLOBAL_OFFSET))
 
 
+def draw_arrow(
+    surface: pygame.Surface,
+    start: pygame.Vector2,
+    end: pygame.Vector2,
+    color: pygame.Color,
+    body_width: int = 2,
+    head_width: int = 10,
+    head_height: int = 10,
+):
+    start_arrow = pygame.math.Vector2(start[0], start[1])
+    end_arrow = pygame.math.Vector2(end[0], end[1])
+
+    # we want that arrows are not inside the graph bubbles...
+
+    arrow = start_arrow - end_arrow
+    length = arrow.length()
+    offset_arrow = arrow.normalize() * NODE_RADIUS
+    # arrow.normalize().scale_to_length(length - 30)
+    arrow = arrow.normalize() * (length - NODE_RADIUS * 2)
+    angle = arrow.angle_to(pygame.Vector2(0, -1))
+
+    length = arrow.length()
+
+    body_length = arrow.length() - head_height
+
+    # Create the triangle head around the origin
+    head_verts = [
+        pygame.Vector2(0, head_height / 2),  # Center
+        pygame.Vector2(head_width / 2, -head_height / 2),  # Bottomright
+        pygame.Vector2(-head_width / 2, -head_height / 2),  # Bottomleft
+    ]
+    # Rotate and translate the head into place
+    translation = pygame.Vector2(0, arrow.length() - (head_height / 2)).rotate(-angle)
+    for i in range(len(head_verts)):
+        head_verts[i].rotate_ip(-angle)
+        head_verts[i] += translation
+        head_verts[i] += start - offset_arrow
+
+    pygame.draw.polygon(surface, color, head_verts)
+
+    # Stop weird shapes when the arrow is shorter than arrow head
+    if arrow.length() >= head_height:
+        # Calculate the body rect, rotate and translate into place
+        body_verts = [
+            pygame.Vector2(-body_width / 2, body_length / 2),  # Topleft
+            pygame.Vector2(body_width / 2, body_length / 2),  # Topright
+            pygame.Vector2(body_width / 2, -body_length / 2),  # Bottomright
+            pygame.Vector2(-body_width / 2, -body_length / 2),  # Bottomleft
+        ]
+        translation = pygame.Vector2(0, body_length / 2).rotate(-angle)
+        for i in range(len(body_verts)):
+            body_verts[i].rotate_ip(-angle)
+            body_verts[i] += translation
+            body_verts[i] += start - offset_arrow
+
+        pygame.draw.polygon(surface, color, body_verts)
+
+
 class Edge:
     def __init__(self, capacity, a, b):
         self.capacity = capacity
@@ -142,12 +202,7 @@ class Edge:
     def draw(self, color=COLOR_BLUE):
         global SCREEN
         # we need to draw flow and capacity as well
-        pygame.draw.aaline(
-            SCREEN,
-            color,
-            self.a.get_coordinates(),
-            self.b.get_coordinates(),
-        )
+        draw_arrow(SCREEN, self.a.get_coordinates(), self.b.get_coordinates(), COLOR_BLUE)
         # generate a visual difference between assigned
         # flows and empty flows
         text_color = COLOR_GREY
@@ -210,15 +265,15 @@ class Vertex:
         draw_circle_alpha(
             COLOR_RED if self.active else COLOR_GREEN,
             (self.x, working_y),
-            20,
+            NODE_RADIUS,
             100.0,
         )
         if self.overflow > 0:
             draw_circle_alpha(
                 COLOR_WHITE,
                 (self.x, working_y),
-                10,
-                255.0,
+                NODE_RADIUS / 2,
+                200.0,
             )
             text = GLOBAL_FONT.render(f"{self.overflow}", True, COLOR_BLACK)
             SCREEN.blit(text, (self.x - 6, working_y - 8))
@@ -249,7 +304,7 @@ class FlowNetwork:
         middle = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 2
         middle_position = initial_width_point + middle
         half_way_down = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 2
-        s = Vertex(initial_width_point, half_way_down + 60, is_source=True)
+        s = Vertex(initial_width_point + 20, half_way_down + 60, is_source=True)
         self.vertices.append(s)
         # now add t to our collection
         t = Vertex(WINDOW_WIDTH - RIGHT_OFFSET, half_way_down + 60)
@@ -260,7 +315,6 @@ class FlowNetwork:
 
         x_four_split = (WINDOW_WIDTH - RIGHT_OFFSET - initial_width_point) / 3
         y_four_split = (GLOBAL_OFFSET - 2 * TOP_AND_BOTTOM_OFFSET) / 4
-
 
         v0 = Vertex(middle_position - 100, x_four_split * 1)
         v1 = Vertex(middle_position + 100, x_four_split * 1)
@@ -278,7 +332,6 @@ class FlowNetwork:
         v1_to_t = Edge(2, v1, t)
         v3_to_t = Edge(3, v3, t)
 
-
         # we know add two nodes
         # therefore we have four layers
 
@@ -292,16 +345,19 @@ class FlowNetwork:
         # v0_to_v1 = Edge(2, v0, v1)
         # v1_to_t = Edge(1, v1, t)
 
-        [self.edges.append(x) for x in [
-            s_to_v0,
-            s_to_v2,
-            v1_to_t,
-            v3_to_t,
-            v0_to_v1,
-            v0_to_v2,
-            v2_to_v3,
-            v3_to_v0,
-        ]]
+        [
+            self.edges.append(x)
+            for x in [
+                s_to_v0,
+                s_to_v2,
+                v1_to_t,
+                v3_to_t,
+                v0_to_v1,
+                v0_to_v2,
+                v2_to_v3,
+                v3_to_v0,
+            ]
+        ]
         [self.vertices.append(x) for x in [v0, v1, v2, v3]]
 
     def get_active_nodes(self):
